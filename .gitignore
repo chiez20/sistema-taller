@@ -1,0 +1,18 @@
+# --- BACKEND (Python/Django) ---
+venv/
+__pycache__/
+*.pyc
+*.pyo
+db.sqlite3
+.env
+
+# --- FRONTEND (React/Node) ---
+node_modules/
+dist/
+build/
+.env.local
+
+# --- SISTEMA ---
+.DS_Store
+Thumbs.db
+.vscode/
