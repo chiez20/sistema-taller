@@ -22,6 +22,8 @@ function FormularioCliente({ alCambiarDatos }) {
                 
                 // Llenamos datos del vehiculo
                 const datosAuto = {
+                    id: autoEncontrado.id,
+                    placa: autoEncontrado.placa,
                     marca: autoEncontrado.marca,
                     modelo: autoEncontrado.modelo,
                     kilometraje: '' // El kilometraje siempre cambia, se deja vacío

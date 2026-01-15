@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Buscador from './components/Buscador'
 import FormularioCliente from './components/FormularioCliente'
+import axios from 'axios'
 
 function App() {
   // --- ESTADOS (La memoria de la pantalla) ---
@@ -71,12 +72,51 @@ function App() {
     setItemsProforma(nuevaLista)
   }
 
-  // Función temporal para probar el botón de guardar
-  const guardarProforma = () => {
-    console.log("--- DATOS LISTOS PARA ENVIAR A DJANGO ---")
-    console.log("Encabezado:", datosEncabezado)
-    console.log("Detalles:", itemsProforma)
-    alert("Revisa la consola (F12) para ver los datos que se enviarán.")
+  // Función botón de guardar
+const guardarProforma = async () => {
+    // 1. Validaciones básicas
+    if (!datosEncabezado.cliente.id || !datosEncabezado.vehiculo.placa) {
+      alert("⚠️ Debes seleccionar un Cliente y Vehículo existentes (usa el buscador de placa).")
+      return
+    }
+    if (itemsProforma.length === 0) {
+      alert("⚠️ La lista de productos está vacía.")
+      return
+    }
+
+    try {
+      // 2. Preparamos el paquete de datos
+      const payload = {
+        cliente: datosEncabezado.cliente.id,
+        vehiculo: datosEncabezado.vehiculo.id,
+        
+        // CORRECCIÓN: Usamos parseInt(...) para convertir texto a número
+        // El "|| 0" sirve por si el campo está vacío, para que envíe un 0 y no falle.
+        kilometraje: parseInt(datosEncabezado.vehiculo.kilometraje) || 0, 
+
+        detalles: itemsProforma.map(item => ({
+          producto: item.id,
+          cantidad: item.cantidad,
+          precio_al_momento: item.precio_unitario, 
+          subtotal: item.total_fila 
+        }))
+      }
+
+      // 3. Enviamos los datos (POST)
+      await axios.post('http://127.0.0.1:8000/api/proformas/', payload)
+      
+      // 4. Si todo sale bien:
+      alert("✅ ¡Orden Guardada con Éxito!")
+      
+      // Limpiamos la pantalla
+      setItemsProforma([])
+      setDatosEncabezado({ placa: '', vehiculo: {}, cliente: {} })
+      window.location.reload() // Recarga suave para limpiar todo
+
+    } catch (error) {
+      console.error("Error guardando:", error)
+      alert("❌ Error al guardar. Revisa la consola para más detalles.")
+    }
   }
 
   // --- CÁLCULOS MATEMÁTICOS ---

@@ -21,11 +21,28 @@ class DetalleProformaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DetalleProforma
         fields = '__all__'
+        # ESTA LÍNEA ES LA CLAVE: Le dice que no pida 'proforma' al validar
+        read_only_fields = ['proforma']
 
 class ProformaSerializer(serializers.ModelSerializer):
-    # Esto permite ver los detalles dentro de la proforma
-    detalles = DetalleProformaSerializer(many=True, read_only=True)
+    # 'many=True' permite recibir una lista de detalles
+    # Quitamos 'read_only' para permitir escribir
+    detalles = DetalleProformaSerializer(many=True) 
     
     class Meta:
         model = Proforma
         fields = '__all__'
+
+    # Sobreescribimos el método CREATE para guardar padre e hijos
+    def create(self, validated_data):
+        # 1. Sacamos los datos de la lista de detalles
+        detalles_data = validated_data.pop('detalles')
+        
+        # 2. Creamos la Proforma (El Padre)
+        proforma = Proforma.objects.create(**validated_data)
+        
+        # 3. Recorremos la lista y creamos cada detalle vinculado a la proforma
+        for detalle_data in detalles_data:
+            DetalleProforma.objects.create(proforma=proforma, **detalle_data)
+            
+        return proforma
