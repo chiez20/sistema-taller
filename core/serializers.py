@@ -46,3 +46,10 @@ class ProformaSerializer(serializers.ModelSerializer):
             DetalleProforma.objects.create(proforma=proforma, **detalle_data)
             
         return proforma
+    
+    # --- Serializador solo para VER la lista (con nombres, no solo IDs) ---
+class ProformaListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Proforma
+        fields = '__all__'
+        depth = 1  # <--- ESTA ES LA MAGIA: Trae los datos del cliente y vehiculo automáticamente
