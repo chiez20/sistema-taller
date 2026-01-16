@@ -9,63 +9,75 @@ function ListaProformas() {
             .then(response => {
                 setProformas(response.data)
             })
-            .catch(error => console.error("Error cargando historial:", error))
+            .catch(error => console.error("Error:", error))
     }, [])
 
-    // Función para abrir el PDF en una pestaña nueva
-    const abrirPDF = (id) => {
-        const url = `http://127.0.0.1:8000/api/proformas/${id}/pdf/`
-        window.open(url, '_blank') // '_blank' abre nueva pestaña
+    const descargarPDF = (id) => {
+        axios.get(`http://127.0.0.1:8000/api/proformas/${id}/pdf/`, { 
+            responseType: 'blob' 
+        })
+        .then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `orden_${id}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+        })
+        .catch(err => alert("Error al descargar PDF. Verifica que hayas iniciado sesión."))
     }
 
     return (
-        <div style={{ padding: '20px', background: 'white', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ color: '#333' }}>📂 Historial de Órdenes</h2>
-            
-            {proformas.length === 0 ? (
-                <p>No hay órdenes registradas aún.</p>
-            ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
+        <div className="card shadow-sm">
+            <div className="card-header bg-dark text-white">
+                <h4 className="m-0">📂 Historial</h4>
+            </div>
+            <div className="table-responsive">
+                <table className="table table-striped align-middle mb-0">
                     <thead>
-                        <tr style={{ background: '#343a40', color: 'white', textAlign: 'left' }}>
-                            <th style={{ padding: '10px' }}>#</th>
-                            <th style={{ padding: '10px' }}>Fecha</th>
-                            <th style={{ padding: '10px' }}>Cliente</th>
-                            <th style={{ padding: '10px' }}>Total</th>
-                            <th style={{ padding: '10px' }}>Acciones</th>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vehículo</th>
+                            <th>Total</th>
+                            <th style={{width: '120px'}}>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                         {proformas.map((prof) => (
-                            <tr key={prof.id} style={{ borderBottom: '1px solid #eee' }}>
-                                <td style={{ padding: '10px', fontWeight: 'bold' }}>#{prof.id}</td>
-                                <td style={{ padding: '10px' }}>
-                                    {new Date(prof.fecha).toLocaleDateString()}
+                            <tr key={prof.id}>
+                                <td>#{prof.id}</td>
+                                <td>
+                                    {/* VALIDACIÓN DE SEGURIDAD: Si no hay vehículo, mostramos texto genérico */}
+                                    {prof.vehiculo ? (
+                                        <>
+                                            <strong>{prof.vehiculo.marca}</strong> <br/>
+                                            <span className="text-muted">{prof.vehiculo.placa}</span>
+                                        </>
+                                    ) : (
+                                        <span className="text-danger">Vehículo eliminado</span>
+                                    )}
                                 </td>
-                                <td style={{ padding: '10px' }}>
-                                    {prof.cliente?.nombre || '---'} <br/>
-                                    <small style={{color:'#666'}}>{prof.vehiculo?.placa}</small>
+                                <td>
+                                    {/* Si el total viene nulo, mostramos 0.00 */}
+                                    ${prof.total ? parseFloat(prof.total).toFixed(2) : "0.00"}
                                 </td>
-                                <td style={{ padding: '10px', fontWeight: 'bold', color: '#28a745' }}>
-                                    ${parseFloat(prof.total).toFixed(2)}
-                                </td>
-                                <td style={{ padding: '10px' }}>
-                                    {/* BOTÓN DE IMPRIMIR */}
+                                <td>
                                     <button 
-                                        onClick={() => abrirPDF(prof.id)}
-                                        style={{
-                                            background: '#17a2b8', color: 'white', border: 'none',
-                                            padding: '5px 10px', borderRadius: '4px', cursor: 'pointer'
-                                        }}
+                                        className="btn btn-danger btn-sm w-100"
+                                        onClick={() => descargarPDF(prof.id)}
                                     >
-                                        🖨️ PDF
+                                        📄 PDF
                                     </button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-            )}
+                
+                {proformas.length === 0 && (
+                    <div className="text-center p-4">No hay datos para mostrar.</div>
+                )}
+            </div>
         </div>
     )
 }

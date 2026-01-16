@@ -46,6 +46,10 @@ class Proforma(models.Model):
     kilometraje = models.IntegerField()
     parte_policial = models.CharField(max_length=50, blank=True, null=True)
     observaciones = models.TextField(blank=True)
+    
+    # --- AGREGA ESTA LÍNEA ---
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    # -------------------------
 
     def __str__(self):
         return f"Proforma #{self.id} - {self.vehiculo.placa}"

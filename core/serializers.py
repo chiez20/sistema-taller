@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import Cliente, Vehiculo, Producto, Proforma, DetalleProforma
 
+# --- 1. Serializadores BÁSICOS ---
+
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cliente
@@ -10,46 +12,53 @@ class VehiculoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehiculo
         fields = '__all__'
+        # --- ESTO SOLUCIONA LOS PUNTOS "..." ---
+        # Le dice a Django: "Cuando envíes el auto, envía también los datos completos del cliente"
+        depth = 1 
 
 class ProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Producto
         fields = '__all__'
 
-# Para la proforma es un poco más especial porque tiene detalles hijos
+# --- 2. Serializadores de PROFORMA (Lógica de Negocio) ---
+
 class DetalleProformaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DetalleProforma
         fields = '__all__'
-        # ESTA LÍNEA ES LA CLAVE: Le dice que no pida 'proforma' al validar
         read_only_fields = ['proforma']
 
 class ProformaSerializer(serializers.ModelSerializer):
-    # 'many=True' permite recibir una lista de detalles
-    # Quitamos 'read_only' para permitir escribir
     detalles = DetalleProformaSerializer(many=True) 
     
     class Meta:
         model = Proforma
         fields = '__all__'
+        read_only_fields = ['total'] 
 
-    # Sobreescribimos el método CREATE para guardar padre e hijos
     def create(self, validated_data):
-        # 1. Sacamos los datos de la lista de detalles
         detalles_data = validated_data.pop('detalles')
         
-        # 2. Creamos la Proforma (El Padre)
+        # Creamos la Proforma
         proforma = Proforma.objects.create(**validated_data)
         
-        # 3. Recorremos la lista y creamos cada detalle vinculado a la proforma
+        total_acumulado = 0 
+
+        # Creamos los detalles y sumamos
         for detalle_data in detalles_data:
-            DetalleProforma.objects.create(proforma=proforma, **detalle_data)
+            detalle = DetalleProforma.objects.create(proforma=proforma, **detalle_data)
+            subtotal = detalle.cantidad * detalle.precio_al_momento
+            total_acumulado += subtotal
+        
+        # Guardamos el total
+        proforma.total = total_acumulado
+        proforma.save()
             
         return proforma
-    
-    # --- Serializador solo para VER la lista (con nombres, no solo IDs) ---
+
 class ProformaListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proforma
         fields = '__all__'
-        depth = 1  # <--- ESTA ES LA MAGIA: Trae los datos del cliente y vehiculo automáticamente
+        depth = 1

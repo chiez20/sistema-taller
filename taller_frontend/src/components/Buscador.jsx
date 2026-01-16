@@ -1,65 +1,76 @@
 import { useState } from 'react'
 import axios from 'axios'
 
-function Buscador({ alSeleccionar }) {
+function Buscador({ onClienteEncontrado, onVehiculoEncontrado }) {
     const [termino, setTermino] = useState('')
     const [resultados, setResultados] = useState([])
+    const [error, setError] = useState('')
 
-    // Función que se ejecuta cada vez que escribes
-    const buscar = async (texto) => {
-        setTermino(texto)
-        
-        // Si borras todo, limpia la lista
-        if (texto.length === 0) {
-            setResultados([])
-            return
-        }
+    const buscar = async (e) => {
+        e.preventDefault()
+        setError('')
+        setResultados([]) // Limpiar anteriores
 
         try {
-            // Aquí llamamos a Django con el filtro ?search=
-            const response = await axios.get(`http://127.0.0.1:8000/api/productos/?search=${texto}`)
+            // Buscamos en la API
+            const response = await axios.get(`http://127.0.0.1:8000/api/vehiculos/?search=${termino}`)
             setResultados(response.data)
-        } catch (error) {
-            console.error("Error buscando:", error)
+            
+            if (response.data.length === 0) {
+                setError('No se encontraron vehículos con esa placa o marca.')
+            }
+        } catch (err) {
+            console.error(err)
+            setError('Error al conectar con el servidor.')
         }
     }
 
-    return (
-        <div style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
-            <h3>🔍 Agregar Repuesto o Servicio</h3>
-            
-            <input 
-                type="text" 
-                placeholder="Escribe código o nombre (ej: Freno)..." 
-                value={termino}
-                onChange={(e) => buscar(e.target.value)}
-                style={{ width: '100%', padding: '10px', fontSize: '16px' }}
-            />
+    const seleccionar = (vehiculo) => {
+        // Al hacer clic, enviamos los datos "hacia arriba" (a App.jsx)
+        onVehiculoEncontrado(vehiculo)
+        
+        // Si el vehículo tiene cliente, también lo enviamos
+        if (vehiculo.cliente) {
+            onClienteEncontrado(vehiculo.cliente)
+        }
+        
+        // Limpiamos la búsqueda para que se vea limpio
+        setResultados([])
+        setTermino('')
+    }
 
-            {/* Lista de resultados flotante */}
+    return (
+        <div>
+            <form onSubmit={buscar} className="d-flex gap-2 mb-3">
+                <input 
+                    type="text" 
+                    className="form-control"
+                    placeholder="Ingrese placa, marca o modelo..." 
+                    value={termino}
+                    onChange={(e) => setTermino(e.target.value)}
+                />
+                <button type="submit" className="btn btn-primary">🔍 Buscar</button>
+            </form>
+
+            {error && <div className="alert alert-warning">{error}</div>}
+
             {resultados.length > 0 && (
-                <ul style={{ listStyle: 'none', padding: 0, marginTop: '10px', border: '1px solid #eee' }}>
-                    {resultados.map(prod => (
-                        <li key={prod.id} style={{ padding: '10px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>
-                                <strong>{prod.nombre}</strong> <small>({prod.codigo})</small>
-                            </span>
+                <div className="list-group">
+                    {resultados.map((vehiculo) => (
+                        <button 
+                            key={vehiculo.id}
+                            className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                            onClick={() => seleccionar(vehiculo)}
+                        >
                             <div>
-                                <span style={{ color: 'green', marginRight: '10px' }}>${prod.precio_unitario}</span>
-                                <button 
-                                    onClick={() => {
-                                        alSeleccionar(prod)
-                                        setTermino('')   // Limpiar input
-                                        setResultados([]) // Limpiar lista
-                                    }}
-                                    style={{ cursor: 'pointer', background: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}
-                                >
-                                    + Agregar
-                                </button>
+                                <strong>{vehiculo.marca} {vehiculo.modelo}</strong>
+                                <br/>
+                                <small className="text-muted">Placa: {vehiculo.placa}</small>
                             </div>
-                        </li>
+                            <span className="badge bg-success rounded-pill">Seleccionar 👉</span>
+                        </button>
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     )

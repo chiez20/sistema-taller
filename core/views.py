@@ -14,22 +14,26 @@ from decimal import Decimal
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
+from rest_framework.permissions import IsAuthenticated
 
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
+    permission_classes = [IsAuthenticated] # <--- ¡CANDADO PUESTO!
 
 class VehiculoViewSet(viewsets.ModelViewSet):
     queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['placa', 'marca', 'modelo']
+    permission_classes = [IsAuthenticated] # <--- ¡CANDADO PUESTO!
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['nombre', 'codigo']
+    permission_classes = [IsAuthenticated] # <--- ¡CANDADO PUESTO!
 
 class ProformaViewSet(viewsets.ModelViewSet):
     queryset = Proforma.objects.all().order_by('-fecha')
@@ -133,3 +137,4 @@ class ProformaViewSet(viewsets.ModelViewSet):
         p.save()
         
         return response
+    permission_classes = [IsAuthenticated] # <--- ¡CANDADO PUESTO!

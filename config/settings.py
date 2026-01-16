@@ -40,13 +40,13 @@ INSTALLED_APPS = [
 
     # Tus aplicaciones nuevas:
     'rest_framework',   # <--- (para la API)
+    'rest_framework.authtoken',
     'corsheaders',      # <--- (para conectar con React después)
     'core',             
 ]
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', # Agregamos de primero
     'django.middleware.security.SecurityMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # <--- ¡AQUÍ! (Importante)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -125,8 +125,26 @@ USE_I18N = True
 
 USE_TZ = True
 
+CORS_ALLOW_ALL_ORIGINS = True
+
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",  # <--- Esta es la clave mágica
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # <--- Esto enseña a Django a leer tokens
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated', # <--- Esto bloquea todo por defecto (opcional, pero recomendado)
+    ],
+}
+
 STATIC_URL = 'static/'
+
