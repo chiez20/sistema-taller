@@ -1,0 +1,82 @@
+/* src/components/Login.css */
+
+.login-container {
+  /* --- LA SOLUCIÓN NUCLEAR --- */
+  position: fixed;   /* Se libera del flujo normal de la página */
+  top: 0;
+  left: 0;
+  width: 100vw;      /* 100% del ancho de la ventana */
+  height: 100vh;     /* 100% de la altura de la ventana */
+  z-index: 1000;     /* Se asegura de estar encima de todo */
+  margin: 0;
+  padding: 0;
+  /* --------------------------- */
+
+  display: flex;             /* Activa el modo flexible */
+  justify-content: center;   /* Centra horizontalmente */
+  align-items: center;       /* Centra verticalmente */
+  
+  /* Degradado azul */
+  background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%); 
+}
+
+.login-card {
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 90%;          /* Por si se ve en celular */
+  max-width: 400px;    /* Ancho máximo en PC */
+  text-align: center;
+}
+
+.login-title {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+  font-size: 1.8rem;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+  text-align: left; /* Las etiquetas y inputs sí van a la izquierda dentro de la tarjeta */
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Evita que el padding rompa el ancho */
+}
+
+.form-control:focus {
+  border-color: #0d6efd;
+  outline: none;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 1rem;
+}
+
+.btn-login:hover {
+  background-color: #0b5ed7;
+}
