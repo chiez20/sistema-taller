@@ -1,19 +1,23 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios' // Importante importar axios
+import { useState } from 'react'
+import axios from 'axios'
 import 'bootstrap/dist/css/bootstrap.min.css'
+
+// Importamos los componentes
 import Buscador from "./components/Buscador"
 import FormularioCliente from "./components/FormularioCliente"
 import ListaProformas from "./components/ListaProformas"
 import Login from "./components/Login"
+import Sidebar from "./components/Sidebar" // <--- NUEVO COMPONENTE
+import ListaClientes from "./components/ListaClientes"
+import ListaVehiculos from "./components/ListaVehiculos"
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'))
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null)
   const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState(null)
-  const [vista, setVista] = useState('taller')
+  const [vista, setVista] = useState('taller') // 'inicio', 'clientes', 'taller', etc.
 
-  // --- CONFIGURACIÓN DE SEGURIDAD (TOKEN) ---
-  // Esto asegura que CADA petición lleve el carnet de identidad
+  // --- CONFIGURACIÓN DE SEGURIDAD ---
   if (token) {
     axios.defaults.headers.common['Authorization'] = `Token ${token}`
   } else {
@@ -23,84 +27,102 @@ function App() {
   const logout = () => {
     localStorage.removeItem('token')
     setToken(null)
-    // Limpiamos datos al salir
     setClienteSeleccionado(null)
     setVehiculoSeleccionado(null)
   }
 
-  // Si no hay token, mostramos Login
+  // 1. Si no hay token, mostramos el Login (que ahora está centrado y bonito)
   if (!token) {
     return <Login setToken={setToken} />
   }
 
+  // 2. Si hay token, mostramos el Dashboard con Sidebar
   return (
-    <div className="container mt-4">
-      {/* Barra Superior */}
-      <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded shadow-sm">
-        <h2 className="m-0">🔧 Sistema Taller</h2>
-        <div>
-            <button className={`btn me-2 ${vista === 'taller' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setVista('taller')}>🛠️ Taller</button>
-            <button className={`btn me-2 ${vista === 'historial' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setVista('historial')}>📂 Historial</button>
-            <button className="btn btn-danger" onClick={logout}>🚪 Salir</button>
-        </div>
-      </div>
-
-      {vista === 'taller' ? (
-        <div className="row">
-          {/* COLUMNA IZQUIERDA: BUSCADOR */}
-          <div className="col-md-4 mb-4">
-            <div className="card shadow-sm">
-              <div className="card-header bg-primary text-white">
-                1. Buscar Vehículo
-              </div>
-              <div className="card-body">
-                <Buscador 
-                  onClienteEncontrado={setClienteSeleccionado} 
-                  onVehiculoEncontrado={setVehiculoSeleccionado}
-                />
-                
-                {/* Mostramos la selección actual si existe */}
-                {vehiculoSeleccionado && (
-                   <div className="alert alert-success mt-3">
-                      <strong>Auto seleccionado:</strong><br/>
-                      {vehiculoSeleccionado.marca} {vehiculoSeleccionado.modelo}<br/>
-                      <small>{vehiculoSeleccionado.placa}</small>
-                   </div>
-                )}
+    <Sidebar 
+        onLogout={logout} 
+        setView={setVista} 
+        currentView={vista}
+    >
+      {/* --- AQUÍ COMIENZA EL CONTENIDO DINÁMICO (Lado Derecho) --- */}
+      
+      {vista === 'taller' && (
+        <div className="container-fluid"> {/* Usamos container-fluid para aprovechar el espacio */}
+          <h2 className="mb-4 text-dark">🛠️ Orden de Taller</h2>
+          
+          <div className="row">
+            {/* COLUMNA IZQUIERDA: BUSCADOR */}
+            <div className="col-md-4 mb-4">
+              <div className="card shadow-sm border-0">
+                <div className="card-header bg-primary text-white fw-bold">
+                  1. Buscar Vehículo
+                </div>
+                <div className="card-body">
+                  <Buscador 
+                    onClienteEncontrado={setClienteSeleccionado} 
+                    onVehiculoEncontrado={setVehiculoSeleccionado}
+                  />
+                  
+                  {vehiculoSeleccionado && (
+                     <div className="alert alert-success mt-3 shadow-sm">
+                       <strong>Auto seleccionado:</strong><br/>
+                       {vehiculoSeleccionado.marca} {vehiculoSeleccionado.modelo}<br/>
+                       <small>{vehiculoSeleccionado.placa}</small>
+                     </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* COLUMNA DERECHA: FORMULARIO DE TRABAJO */}
-          <div className="col-md-8">
-            <div className="card shadow-sm">
-              <div className="card-header bg-success text-white">
-                2. Orden de Trabajo (Repuestos y Servicios)
-              </div>
-              <div className="card-body">
-                {/* AQUI ESTABA EL ERROR: Antes ocultábamos esto si no había vehículo.
-                    Ahora lo mostramos siempre, pero avisamos si falta el auto. */}
-                
-                {vehiculoSeleccionado ? (
-                    <FormularioCliente 
-                      cliente={clienteSeleccionado}
-                      vehiculo={vehiculoSeleccionado}
-                    />
-                ) : (
-                    <div className="text-center p-5 text-muted">
-                        <h3>⬅️ Selecciona un auto primero</h3>
-                        <p>Usa el buscador de la izquierda para encontrar el vehículo y habilitar este panel.</p>
-                    </div>
-                )}
+            {/* COLUMNA DERECHA: FORMULARIO */}
+            <div className="col-md-8">
+              <div className="card shadow-sm border-0">
+                <div className="card-header bg-success text-white fw-bold">
+                  2. Detalles de la Orden
+                </div>
+                <div className="card-body">
+                  {vehiculoSeleccionado ? (
+                     <FormularioCliente 
+                       cliente={clienteSeleccionado}
+                       vehiculo={vehiculoSeleccionado}
+                     />
+                  ) : (
+                     <div className="text-center p-5 text-muted">
+                        <div style={{fontSize: '3rem'}}>⬅️🚗</div>
+                        <h3>Selecciona un vehículo</h3>
+                        <p>Utiliza el buscador de la izquierda para comenzar una nueva orden.</p>
+                     </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      ) : (
-        // VISTA DE HISTORIAL
+      )}
+
+      {/* VISTA: HISTORIAL */}
+      {vista === 'inicio' && (
+          // Como placeholder, mostramos el historial en 'inicio' también por ahora
+          <ListaProformas /> 
+      )}
+      
+      {/* VISTA: CLIENTES (NUEVO) */}
+      {vista === 'clientes' && (
+          <ListaClientes />
+      )}
+
+      {/* VISTA: VEHICULOS (NUEVO) */}
+      {vista === 'vehiculos' && (
+          <ListaVehiculos />
+      )}
+
+      {/* VISTA: HISTORIAL */}
+      {vista === 'historial' && (
         <ListaProformas />
       )}
-    </div>
+      
+      {/* Puedes agregar más condiciones para las otras vistas del menú aquí */}
+
+    </Sidebar>
   )
 }
 

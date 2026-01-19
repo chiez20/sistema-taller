@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 
 function FormularioCliente({ cliente, vehiculo }) {
+    // --- NUEVO ESTADO PARA EL NOMBRE DEL CLIENTE ---
+    const [nombreCliente, setNombreCliente] = useState('') 
+
     const [kilometraje, setKilometraje] = useState('')
     const [productos, setProductos] = useState([])
     const [itemsSeleccionados, setItemsSeleccionados] = useState([])
@@ -12,7 +15,19 @@ function FormularioCliente({ cliente, vehiculo }) {
     const [error, setError] = useState('')
     const [exito, setExito] = useState('')
 
-    // 1. Cargar productos
+    // --- NUEVO: UseEffect para rellenar el nombre automáticamente ---
+    useEffect(() => {
+        // Si nos pasan el nombre directo (desde el buscador)
+        if (cliente) {
+            setNombreCliente(cliente)
+        } 
+        // Si no, intentamos sacarlo del vehículo
+        else if (vehiculo && vehiculo.cliente_nombre) {
+            setNombreCliente(vehiculo.cliente_nombre)
+        }
+    }, [cliente, vehiculo])
+
+    // 1. Cargar productos (Tu código original)
     useEffect(() => {
         axios.get('http://127.0.0.1:8000/api/productos/')
             .then(response => {
@@ -24,7 +39,7 @@ function FormularioCliente({ cliente, vehiculo }) {
             })
     }, [])
 
-    // 2. Función para Agregar Item
+    // 2. Función para Agregar Item (Tu código original)
     const agregarItem = (e) => {
         e.preventDefault()
         if (!productoId) return
@@ -32,7 +47,6 @@ function FormularioCliente({ cliente, vehiculo }) {
         const productoReal = productos.find(p => p.id === parseInt(productoId))
         if (!productoReal) return
 
-        // --- CORRECCIÓN 1: Usamos 'precio_unitario' ---
         const precioNumerico = parseFloat(productoReal.precio_unitario) || 0 
         const cantidadNumerica = parseInt(cantidad) || 1
 
@@ -57,11 +71,20 @@ function FormularioCliente({ cliente, vehiculo }) {
             setError('Agrega al menos un producto.')
             return
         }
+        // Validación extra: Que haya vehículo
+        if (!vehiculo) {
+            setError('No hay vehículo seleccionado.')
+            return
+        }
 
         try {
             const datos = {
                 vehiculo: vehiculo.id,
-                cliente: cliente.id,
+                // --- CORRECCIÓN IMPORTANTE AQUÍ ---
+                // Usamos el ID que viene dentro del objeto vehiculo.
+                // Ya no usamos 'cliente.id' porque 'cliente' ahora es solo el nombre (texto).
+                cliente: vehiculo.cliente, 
+                
                 kilometraje: kilometraje,
                 estado: 'pendiente',
                 total: itemsSeleccionados.reduce((sum, i) => sum + i.subtotal, 0),
@@ -69,7 +92,6 @@ function FormularioCliente({ cliente, vehiculo }) {
                 detalles: itemsSeleccionados.map(item => ({
                     producto: item.producto.id,
                     cantidad: item.cantidad,
-                    // --- CORRECCIÓN 2: Usamos 'precio_unitario' ---
                     precio_al_momento: item.producto.precio_unitario || 0 
                 }))
             }
@@ -102,7 +124,8 @@ function FormularioCliente({ cliente, vehiculo }) {
                     <input 
                         type="text" 
                         className="form-control" 
-                        value={cliente?.nombre || vehiculo?.cliente?.nombre || "..."} 
+                        // --- AQUÍ USAMOS EL NUEVO ESTADO ---
+                        value={nombreCliente} 
                         readOnly 
                         disabled 
                     />
@@ -133,7 +156,7 @@ function FormularioCliente({ cliente, vehiculo }) {
 
             <hr />
 
-            {/* SECCIÓN PRODUCTOS */}
+            {/* SECCIÓN PRODUCTOS (Igual que antes) */}
             <div className="card p-3 bg-light border-0 shadow-sm">
                 <h6 className="mb-3">🛒 Agregar Repuestos</h6>
                 
@@ -150,7 +173,6 @@ function FormularioCliente({ cliente, vehiculo }) {
                         >
                             <option value="">-- Seleccionar --</option>
                             {productos.map(p => (
-                                // --- CORRECCIÓN 3: Visualización en el menú ---
                                 <option key={p.id} value={p.id}>
                                     {p.nombre} - ${ (parseFloat(p.precio_unitario) || 0).toFixed(2) }
                                 </option>
@@ -171,7 +193,7 @@ function FormularioCliente({ cliente, vehiculo }) {
                 </div>
             </div>
 
-            {/* TABLA */}
+            {/* TABLA (Igual que antes) */}
             <table className="table mt-3 align-middle">
                 <thead className="table-light">
                     <tr>

@@ -9,12 +9,16 @@ class ClienteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class VehiculoSerializer(serializers.ModelSerializer):
+    # 1. Campo para MOSTRAR el nombre (Solo lectura)
+    cliente_nombre = serializers.ReadOnlyField(source='cliente.nombre')
+    
+    # 2. Campo para GUARDAR el ID (Escritura)
+    cliente = serializers.PrimaryKeyRelatedField(queryset=Cliente.objects.all())
+
     class Meta:
         model = Vehiculo
-        fields = '__all__'
-        # --- ESTO SOLUCIONA LOS PUNTOS "..." ---
-        # Le dice a Django: "Cuando envíes el auto, envía también los datos completos del cliente"
-        depth = 1 
+        # CORREGIDO: Quité 'anio' y puse 'color'
+        fields = ['id', 'placa', 'marca', 'modelo', 'color', 'cliente', 'cliente_nombre']
 
 class ProductoSerializer(serializers.ModelSerializer):
     class Meta:

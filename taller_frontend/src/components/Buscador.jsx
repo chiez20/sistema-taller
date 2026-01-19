@@ -26,15 +26,17 @@ function Buscador({ onClienteEncontrado, onVehiculoEncontrado }) {
     }
 
     const seleccionar = (vehiculo) => {
-        // Al hacer clic, enviamos los datos "hacia arriba" (a App.jsx)
+        // 1. Enviamos el vehículo encontrado (esto está bien)
         onVehiculoEncontrado(vehiculo)
         
-        // Si el vehículo tiene cliente, también lo enviamos
-        if (vehiculo.cliente) {
-            onClienteEncontrado(vehiculo.cliente)
+        // 2. CORRECCIÓN AQUÍ 👇
+        // Antes enviabas 'vehiculo.cliente' (que es el ID número).
+        // Ahora enviamos 'vehiculo.cliente_nombre' (que es el Texto del nombre).
+        if (vehiculo.cliente_nombre) {
+            onClienteEncontrado(vehiculo.cliente_nombre)
         }
         
-        // Limpiamos la búsqueda para que se vea limpio
+        // Limpiamos la búsqueda
         setResultados([])
         setTermino('')
     }
