@@ -77,6 +77,7 @@ function ListaVehiculos() {
                                     <tr>
                                         <th>Placa</th>
                                         <th>Vehículo</th>
+                                        <th>Color</th>
                                         <th>Año</th>
                                         <th>Dueño</th>
                                         <th>Acciones</th>
@@ -94,6 +95,7 @@ function ListaVehiculos() {
                                                 <td className="fw-bold">
                                                     {auto.marca} {auto.modelo}
                                                 </td>
+                                                <td>{auto.color || '-'}</td>
                                                 <td>{auto.anio || '-'}</td>
                                                 <td>
                                                     {/* Usamos ?. para evitar errores si no hay cliente */}
