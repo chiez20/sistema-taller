@@ -15,7 +15,10 @@ class Vehiculo(models.Model):
     placa = models.CharField(max_length=10, unique=True)
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
-    color = models.CharField(max_length=30, blank=True)
+    color = models.CharField(max_length=30, blank=True) # Este ya lo tenías
+    # AGREGA ESTA LÍNEA 👇
+    anio = models.IntegerField(null=True, blank=True) 
+    
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
 
     def __str__(self):

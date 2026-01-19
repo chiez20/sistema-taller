@@ -7,6 +7,7 @@ function ModalVehiculo({ cerrarModal, alGuardar }) {
         placa: '',
         marca: '',
         modelo: '',
+        color: '',
         anio: '',
         cliente: '' // Aquí guardaremos el ID del cliente (ej: 5)
     });
@@ -140,6 +141,18 @@ function ModalVehiculo({ cerrarModal, alGuardar }) {
                                 name="modelo" value={form.modelo} onChange={handleChange}
                             />
                         </div>
+                        
+                        <div className="mb-3">
+                             <label className="form-label">Color</label>
+                             <input 
+                                  type="text" 
+                                  className="form-control" 
+                                 placeholder="Ej: Rojo, Azul, Plateado"
+                                  name="color" 
+                                   value={form.color} 
+                                    onChange={handleChange}
+                                    />
+                            </div>
                     </div>
 
                     <div className="d-flex justify-content-end gap-2 mt-4">
